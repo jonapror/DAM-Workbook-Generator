@@ -26,12 +26,19 @@ namespace Aprimo.ConfigurationWorkbookGenerator.Helpers
             if (!string.IsNullOrEmpty(accessToken))
             {
                 return accessToken;
-            }            
-            
+            }
+
             encodedToken = Convert.ToBase64String(
             Encoding.UTF8.GetBytes(string.Format("{0}:{1}", userName, clientToken)));
-            accessToken = JsonHelper.GetAccessToken(encodedToken, tokenEndpoint, clientId, ref refreshToken);
-            
+            try
+            {
+                accessToken = JsonHelper.GetAccessToken(encodedToken, tokenEndpoint, clientId, ref refreshToken);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
             return accessToken;
         }
 

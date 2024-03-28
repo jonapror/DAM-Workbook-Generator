@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
 
@@ -31,8 +32,21 @@ namespace Aprimo.ConfigurationWorkbookGenerator
                 }
                 else
                 {
+                    Dictionary<string, bool> exportObjects = new Dictionary<string, bool>();
+                    exportObjects.Add("userGroups", cbUserGroups.Checked);
+                    exportObjects.Add("classificationPermissions", cbClassificationPermissions.Checked);
+                    exportObjects.Add("functionalPermissions", cbFunctionalPermissions.Checked);
+                    exportObjects.Add("fieldGroups", cbFieldGroups.Checked);
+                    exportObjects.Add("fieldDefinitions", cbFieldDefinitions.Checked);
+                    exportObjects.Add("classifications", cbClassifications.Checked);
+                    exportObjects.Add("contentTypes", cbContentTypes.Checked);
+                    exportObjects.Add("rules", cbRules.Checked);
+                    exportObjects.Add("settings", cbSettings.Checked);
+                    exportObjects.Add("translations", cbTranslations.Checked);
+                    exportObjects.Add("watermarks", cbWatermarks.Checked);
+
                     WorkbookHelper helper = new WorkbookHelper(SubDomain, ClientId, UserName, UserToken, logger);
-                    helper.ExportConfiguration(txtOutputFilePath.Text, txtInputFilePath.Text);
+                    helper.ExportConfiguration(txtOutputFilePath.Text, txtInputFilePath.Text, exportObjects);
                     txtInputFilePath.Text = txtOutputFilePath.Text;
                 }
             }
@@ -79,6 +93,39 @@ namespace Aprimo.ConfigurationWorkbookGenerator
         private string GetDefaultOutputFileName()
         {
             return string.Format("{0} ConfigWorkbook {1}.xlsx", txtSubdomain.Text.ToUpperInvariant(), DateTime.Now.ToString("yyyyMMdd-HHmmss")).Trim();
+        }
+
+        private void cbSelectAll_CheckedChanged(object sender, EventArgs e)
+        {
+            if (cbSelectAll.Checked == true)
+            {
+                cbUserGroups.Checked = true;
+                cbClassificationPermissions.Checked = true;
+                cbFunctionalPermissions.Checked = true;
+                cbFieldGroups.Checked = true;
+                cbFieldDefinitions.Checked = true;
+                cbClassifications.Checked = true;
+                cbContentTypes.Checked = true;
+                cbSettings.Checked = true;
+                cbWatermarks.Checked = true;
+                cbRules.Checked = true;
+                cbTranslations.Checked = true;
+            };
+            if (cbSelectAll.Checked == false)
+            {
+                cbUserGroups.Checked = false;
+                cbClassificationPermissions.Checked = false;
+                cbFunctionalPermissions.Checked = false;
+                cbFieldGroups.Checked = false;
+                cbFieldDefinitions.Checked = false;
+                cbClassifications.Checked = false;
+                cbContentTypes.Checked = false;
+                cbSettings.Checked = false;
+                cbWatermarks.Checked = false;
+                cbRules.Checked = false;
+                cbTranslations.Checked = false;
+            };
+
         }
     }
 }

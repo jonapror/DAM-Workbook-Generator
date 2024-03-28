@@ -25,7 +25,7 @@ namespace Aprimo.ConfigurationWorkbookGenerator
         private Dictionary<Guid, dynamic> Translations = null;
         private Dictionary<Guid, dynamic> Rules = null;
         private Dictionary<Guid, dynamic> ContentTypes = null;
-
+        private Dictionary<string, bool> ExportObjects = new Dictionary<string, bool>();
         public string Token;
 
         private readonly string SubDomain;
@@ -34,7 +34,7 @@ namespace Aprimo.ConfigurationWorkbookGenerator
         private readonly string UserToken;
         private readonly string AprimoMoUrl;
         private readonly string AprimoDamUrl;
-        private static AccessHelper accessHelper; 
+        private static AccessHelper accessHelper;
 
         private readonly UiHelper UiHelper;
 
@@ -52,12 +52,23 @@ namespace Aprimo.ConfigurationWorkbookGenerator
             accessHelper = new AccessHelper(userName, userToken, AprimoMoUrl, clientId);
         }
 
-        internal void ExportConfiguration(string outputPath, string pathToFileWithNotes)
+        internal void ExportConfiguration(string outputPath, string pathToFileWithNotes, Dictionary<string, bool> exportObjects)
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
             ExcelPackage excelPackage = null;
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
             ExcelPackage excelPackageWithNotes = new ExcelPackage();
+            this.ExportObjects = exportObjects;
+
+            try
+            {
+                var accessToken = accessHelper.GetToken();
+            }
+            catch (Exception ex)
+            {
+                this.UiHelper.LogInfo("Error while trying to log into the enviroment using information provided, please check your inputs.", true);
+                return;
+            }
 
             try
             {
@@ -90,81 +101,104 @@ namespace Aprimo.ConfigurationWorkbookGenerator
                 coverSheet.Cells[4, 2].Value = DateTime.Now;
                 coverSheet.Cells[4, 2].Style.Numberformat.Format = "dd/mm/yyyy HH:mm:ss";
 
-                //Export usergroups
-                worksheetName = "User Groups";
-                this.UiHelper.LogInfo(string.Format("Creating {0} sheet...", worksheetName), true);
-                ExcelWorksheet userGroupsSheet = excelPackage.Workbook.Worksheets.Add(worksheetName);
-                ExportUserGroups(userGroupsSheet, excelPackageWithNotes.Workbook.Worksheets[worksheetName]);
-                FormatWorksheet(userGroupsSheet);
 
-                //Export fieldgroups
-                worksheetName = "Field Groups";
-                this.UiHelper.LogInfo(string.Format("Creating {0} sheet...", worksheetName), true);
-                ExcelWorksheet fieldGroupsSheet = excelPackage.Workbook.Worksheets.Add(worksheetName);
-                ExportFieldGroups(fieldGroupsSheet, excelPackageWithNotes.Workbook.Worksheets[worksheetName]);
-                FormatWorksheet(fieldGroupsSheet);
-
-                //Export fields
-                worksheetName = "Field Definitions";
-                this.UiHelper.LogInfo(string.Format("Creating {0} sheet...", worksheetName), true);
-                ExcelWorksheet fieldDefinitionsSheet = excelPackage.Workbook.Worksheets.Add(worksheetName);
-                ExportFieldDefinitions(fieldDefinitionsSheet, excelPackageWithNotes.Workbook.Worksheets[worksheetName]);
-                FormatWorksheet(fieldDefinitionsSheet);
-              
-                //Export classifications
-                worksheetName = "Classifications";
-                this.UiHelper.LogInfo(string.Format("Creating {0} sheet...", worksheetName), true);
-                ExcelWorksheet classificationsSheet = excelPackage.Workbook.Worksheets.Add(worksheetName);
-                ExportClassifications(classificationsSheet, excelPackageWithNotes.Workbook.Worksheets[worksheetName]);
-                FormatWorksheet(classificationsSheet);
-                
-                //Export security
-                this.UiHelper.LogInfo(string.Format("Creating {0} sheet...", worksheetName), true);
-                ExcelWorksheet securityPermissionsSheet = excelPackage.Workbook.Worksheets.Add("Access Control List");
-                ExportSecurityPermissions(securityPermissionsSheet);
-                FormatWorksheet(securityPermissionsSheet, true, 4);
-
-                //Export role permissions
-                this.UiHelper.LogInfo(string.Format("Creating {0} sheet...", worksheetName), true);
-                ExcelWorksheet rolePermissionsSheet = excelPackage.Workbook.Worksheets.Add("Role Permissions");
-                ExportRolePermissions(rolePermissionsSheet);
-                FormatWorksheet(rolePermissionsSheet, true, 3);
-
-                //Export Settings
-                worksheetName = "Settings";
-                this.UiHelper.LogInfo(string.Format("Creating {0} sheet...", worksheetName), true);
-                ExcelWorksheet settingsSheet = excelPackage.Workbook.Worksheets.Add(worksheetName);
-                ExportSettings(settingsSheet, excelPackageWithNotes.Workbook.Worksheets[worksheetName]);
-                FormatWorksheet(settingsSheet);
-
-                //Export Watermarks
-                worksheetName = "Watermarks";
-                this.UiHelper.LogInfo(string.Format("Creating {0} sheet...", worksheetName), true);
-                ExcelWorksheet watermarksSheet = excelPackage.Workbook.Worksheets.Add(worksheetName);
-                ExportWatermarks(watermarksSheet, excelPackageWithNotes.Workbook.Worksheets[worksheetName]);
-                FormatWorksheet(watermarksSheet);
-
-                //Export Translations
-                worksheetName = "Translations";
-                this.UiHelper.LogInfo(string.Format("Creating {0} sheet...", worksheetName), true);
-                ExcelWorksheet translationsSheet = excelPackage.Workbook.Worksheets.Add(worksheetName);
-                ExportTranslations(translationsSheet, excelPackageWithNotes.Workbook.Worksheets[worksheetName]);
-                FormatWorksheet(translationsSheet);
-                
-                //Export Rules
-                worksheetName = "Rules";
-                this.UiHelper.LogInfo(string.Format("Creating {0} sheet...", worksheetName), true);
-                ExcelWorksheet rulesSheet = excelPackage.Workbook.Worksheets.Add(worksheetName);
-                ExportRules(rulesSheet, excelPackageWithNotes.Workbook.Worksheets[worksheetName]);
-                FormatWorksheet(rulesSheet);
-                
-                //Export Content types
-                worksheetName = "Content types";
-                this.UiHelper.LogInfo(string.Format("Creating {0} sheet...", worksheetName), true);
-                ExcelWorksheet contentTypesSheet = excelPackage.Workbook.Worksheets.Add(worksheetName);
-                ExportContentTypes(contentTypesSheet, excelPackageWithNotes.Workbook.Worksheets[worksheetName]);
-                FormatWorksheet(contentTypesSheet);
-                
+                if (ExportObjects["userGroups"] == true)
+                {
+                    //Export usergroups
+                    worksheetName = "User Groups";
+                    this.UiHelper.LogInfo(string.Format("Creating {0} sheet...", worksheetName), true);
+                    ExcelWorksheet userGroupsSheet = excelPackage.Workbook.Worksheets.Add(worksheetName);
+                    ExportUserGroups(userGroupsSheet, excelPackageWithNotes.Workbook.Worksheets[worksheetName]);
+                    FormatWorksheet(userGroupsSheet);
+                }
+                if (ExportObjects["fieldGroups"] == true)
+                {
+                    //Export fieldgroups
+                    worksheetName = "Field Groups";
+                    this.UiHelper.LogInfo(string.Format("Creating {0} sheet...", worksheetName), true);
+                    ExcelWorksheet fieldGroupsSheet = excelPackage.Workbook.Worksheets.Add(worksheetName);
+                    ExportFieldGroups(fieldGroupsSheet, excelPackageWithNotes.Workbook.Worksheets[worksheetName]);
+                    FormatWorksheet(fieldGroupsSheet);
+                }
+                if (ExportObjects["fieldDefinitions"] == true)
+                {
+                    //Export fields
+                    worksheetName = "Field Definitions";
+                    this.UiHelper.LogInfo(string.Format("Creating {0} sheet...", worksheetName), true);
+                    ExcelWorksheet fieldDefinitionsSheet = excelPackage.Workbook.Worksheets.Add(worksheetName);
+                    ExportFieldDefinitions(fieldDefinitionsSheet, excelPackageWithNotes.Workbook.Worksheets[worksheetName]);
+                    FormatWorksheet(fieldDefinitionsSheet);
+                }
+                if (ExportObjects["classifications"] == true)
+                {
+                    //Export classifications
+                    worksheetName = "Classifications";
+                    this.UiHelper.LogInfo(string.Format("Creating {0} sheet...", worksheetName), true);
+                    ExcelWorksheet classificationsSheet = excelPackage.Workbook.Worksheets.Add(worksheetName);
+                    ExportClassifications(classificationsSheet, excelPackageWithNotes.Workbook.Worksheets[worksheetName]);
+                    FormatWorksheet(classificationsSheet);
+                }
+                if (ExportObjects["classificationPermissions"] == true)
+                {
+                    //Export security
+                    this.UiHelper.LogInfo(string.Format("Creating {0} sheet...", worksheetName), true);
+                    ExcelWorksheet securityPermissionsSheet = excelPackage.Workbook.Worksheets.Add("Classification Permissions");
+                    ExportSecurityPermissions(securityPermissionsSheet);
+                    FormatWorksheet(securityPermissionsSheet, true, 4);
+                }
+                if (ExportObjects["functionalPermissions"] == true)
+                {
+                    //Export role permissions
+                    this.UiHelper.LogInfo(string.Format("Creating {0} sheet...", worksheetName), true);
+                    ExcelWorksheet rolePermissionsSheet = excelPackage.Workbook.Worksheets.Add("Functional Permissions");
+                    ExportRolePermissions(rolePermissionsSheet);
+                    FormatWorksheet(rolePermissionsSheet, true, 3);
+                }
+                if (ExportObjects["settings"] == true)
+                {
+                    //Export Settings
+                    worksheetName = "Settings";
+                    this.UiHelper.LogInfo(string.Format("Creating {0} sheet...", worksheetName), true);
+                    ExcelWorksheet settingsSheet = excelPackage.Workbook.Worksheets.Add(worksheetName);
+                    ExportSettings(settingsSheet, excelPackageWithNotes.Workbook.Worksheets[worksheetName]);
+                    FormatWorksheet(settingsSheet);
+                }
+                if (ExportObjects["watermarks"] == true)
+                {
+                    //Export Watermarks
+                    worksheetName = "Watermarks";
+                    this.UiHelper.LogInfo(string.Format("Creating {0} sheet...", worksheetName), true);
+                    ExcelWorksheet watermarksSheet = excelPackage.Workbook.Worksheets.Add(worksheetName);
+                    ExportWatermarks(watermarksSheet, excelPackageWithNotes.Workbook.Worksheets[worksheetName]);
+                    FormatWorksheet(watermarksSheet);
+                }
+                if (ExportObjects["translations"] == true)
+                {
+                    //Export Translations
+                    worksheetName = "Translations";
+                    this.UiHelper.LogInfo(string.Format("Creating {0} sheet...", worksheetName), true);
+                    ExcelWorksheet translationsSheet = excelPackage.Workbook.Worksheets.Add(worksheetName);
+                    ExportTranslations(translationsSheet, excelPackageWithNotes.Workbook.Worksheets[worksheetName]);
+                    FormatWorksheet(translationsSheet);
+                }
+                if (ExportObjects["rules"] == true)
+                {
+                    //Export Rules
+                    worksheetName = "Rules";
+                    this.UiHelper.LogInfo(string.Format("Creating {0} sheet...", worksheetName), true);
+                    ExcelWorksheet rulesSheet = excelPackage.Workbook.Worksheets.Add(worksheetName);
+                    ExportRules(rulesSheet, excelPackageWithNotes.Workbook.Worksheets[worksheetName]);
+                    FormatWorksheet(rulesSheet);
+                }
+                if (ExportObjects["contentTypes"] == true)
+                {
+                    //Export Content types
+                    worksheetName = "Content types";
+                    this.UiHelper.LogInfo(string.Format("Creating {0} sheet...", worksheetName), true);
+                    ExcelWorksheet contentTypesSheet = excelPackage.Workbook.Worksheets.Add(worksheetName);
+                    ExportContentTypes(contentTypesSheet, excelPackageWithNotes.Workbook.Worksheets[worksheetName]);
+                    FormatWorksheet(contentTypesSheet);
+                }
                 excelPackage.Save();
 
                 this.UiHelper.LogInfo(string.Format("Done. Total runtime {0}", stopwatch.Elapsed), true);
@@ -180,8 +214,8 @@ namespace Aprimo.ConfigurationWorkbookGenerator
         }
 
         private void PreloadData()
-        {            
-            Classifications = LoadAllObjects("{0}/classifications", new Dictionary<string, string>() { { "select-classification", "NamePath" }});
+        {
+            Classifications = LoadAllObjects("{0}/classifications", new Dictionary<string, string>() { { "select-classification", "NamePath" } });
             FieldGroups = LoadAllObjects("{0}/fieldgroups", new Dictionary<string, string>());
             FieldDefinitions = LoadAllObjects("{0}/fielddefinitions", new Dictionary<string, string>());
             UserGroups = LoadAllObjects("{0}/usergroups", new Dictionary<string, string>());
@@ -290,22 +324,31 @@ namespace Aprimo.ConfigurationWorkbookGenerator
             }
         }
          */
-        private dynamic GetRestResponse(string url, Dictionary<string,string> headers)
+        private dynamic GetRestResponse(string url, Dictionary<string, string> headers)
         {
-           
-            var client = new RestClient(url);           
-           
+
+            var client = new RestClient(url);
+
             var request = new RestRequest(url, Method.Get);
-            var accessToken = accessHelper.GetToken();
+            var accessToken = "";
+            try
+            {
+                accessToken = accessHelper.GetToken();
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
             request.AddHeader("Authorization", string.Format("Bearer {0}", accessToken));
             request.AddHeader("Accept", "application/hal+json");
             request.AddHeader("API-VERSION", "1");
             request.AddHeader("pageSize", "500");
-            foreach(var header in headers)
+            foreach (var header in headers)
             {
                 request.AddHeader(header.Key, header.Value);
-            }    
-                
+            }
+
             RestResponse response = client.Execute(request);
             if (response.StatusCode.ToString().Equals("unauthorized", StringComparison.OrdinalIgnoreCase))
             {
@@ -316,9 +359,9 @@ namespace Aprimo.ConfigurationWorkbookGenerator
             if (response.StatusCode.ToString().Equals("OK", StringComparison.OrdinalIgnoreCase))
             {
                 return JsonConvert.DeserializeObject(response.Content);
-                    
+
             }
-            return null;                 
+            return null;
         }
 
         private void ExportSecurityPermissions(ExcelWorksheet worksheet)
@@ -384,9 +427,9 @@ namespace Aprimo.ConfigurationWorkbookGenerator
             {
                 for (int i = 1; i <= worksheet.Dimension.Columns; i++)
                 {
-               
-                     if (worksheet.Cells[indexOfRowToSearch, i].Text == lookupValue) return i;
-                
+
+                    if (worksheet.Cells[indexOfRowToSearch, i].Text == lookupValue) return i;
+
                 }
             }
             catch (Exception)
@@ -402,9 +445,9 @@ namespace Aprimo.ConfigurationWorkbookGenerator
             try
             {
                 for (int i = 1; i <= worksheet.Dimension.Rows; i++)
-                {               
-                     if (worksheet.Cells[i, indexOfColumnToSearch].Text == lookupValue) return i;
-                
+                {
+                    if (worksheet.Cells[i, indexOfColumnToSearch].Text == lookupValue) return i;
+
                 }
             }
             catch (Exception)
@@ -494,24 +537,31 @@ namespace Aprimo.ConfigurationWorkbookGenerator
 
                     UiHelper.LogInfo(string.Format("Processing setting {0}...", name), false, true);
 
-                    //GetSetting is not supported for role-settings or settings with a UserGroupSettingMode set to Manual.
-                    if ((settingDefinition.dataType.ToString().ToUpperInvariant() != "ROLE") &&
-                        (settingDefinition.userGroupSettingMode.ToString().ToUpperInvariant() != "MANUAL"))
-
+                    try
                     {
-                        string defaultValue = settingDefinition.defaultValue.ToString();
-                        dynamic setting = GetRestResponse(string.Format("{0}/setting/{1}", AprimoDamUrl, name), new Dictionary<string, string>());
-                        string settingValue = setting.value.ToString();
+                        //GetSetting is not supported for role-settings or settings with a UserGroupSettingMode set to Manual.
+                        if ((settingDefinition.dataType.ToString().ToUpperInvariant() != "ROLE") &&
+                            (settingDefinition.userGroupSettingMode.ToString().ToUpperInvariant() != "MANUAL"))
 
-                        if (settingValue != defaultValue)
                         {
-                            worksheet.Cells[i, 1].Value = settingDefinition.id.ToString();
-                            worksheet.Cells[i, 2].Value = name;
-                            worksheet.Cells[i, 3].Value = FindLabelInEnglish(settingDefinition.labels);
-                            worksheet.Cells[i, 4].Value = settingValue;
-                            worksheet.Cells[i, 5].Value = FindNotesInWorksheet(name.ToString(), worksheetWithNotes);
-                            i++;
+                            string defaultValue = settingDefinition.defaultValue.ToString();
+                            dynamic setting = GetRestResponse(string.Format("{0}/setting/{1}", AprimoDamUrl, name), new Dictionary<string, string>());
+                            string settingValue = setting.value.ToString();
+
+                            if (settingValue != defaultValue)
+                            {
+                                worksheet.Cells[i, 1].Value = settingDefinition.id.ToString();
+                                worksheet.Cells[i, 2].Value = name;
+                                worksheet.Cells[i, 3].Value = FindLabelInEnglish(settingDefinition.labels);
+                                worksheet.Cells[i, 4].Value = settingValue;
+                                worksheet.Cells[i, 5].Value = FindNotesInWorksheet(name.ToString(), worksheetWithNotes);
+                                i++;
+                            }
                         }
+                    }
+                    catch (Exception ex)
+                    {
+                        UiHelper.LogInfo(string.Format("Processing setting {0} failed with message {1}", name, ex.Message), false, true);
                     }
                 }
 
@@ -539,10 +589,10 @@ namespace Aprimo.ConfigurationWorkbookGenerator
             UiHelper.SetSubProcessProgressBarMaximum(Rules.Count);
             foreach (dynamic rule in Rules.Values)
             {
-                
-                    string name = rule.name.ToString();
-               
-                    UiHelper.LogInfo(string.Format("Processing rule {0}...", name), false, true);
+
+                string name = rule.name.ToString();
+
+                UiHelper.LogInfo(string.Format("Processing rule {0}...", name), false, true);
                 try
                 {
                     worksheet.Cells[i, 1].Value = rule.id.ToString();
@@ -554,7 +604,8 @@ namespace Aprimo.ConfigurationWorkbookGenerator
                     worksheet.Cells[i, 7].Value = GetRuleActionsText(rule._embedded.actions.items);
                     worksheet.Cells[i, 9].Value = FindNotesInWorksheet(rule.id.ToString(), worksheetWithNotes);
                     worksheet.Cells[i, 8].Value = rule.includeDraftRecords.ToString();
-                } catch (System.Exception ex) { UiHelper.LogInfo(string.Format("Error happened while processing rule {0}, error message: {1}", name, ex.Message), false, true); } 
+                }
+                catch (System.Exception ex) { UiHelper.LogInfo(string.Format("Error happened while processing rule {0}, error message: {1}", name, ex.Message), false, true); }
                 i++;
             }
         }
@@ -1052,21 +1103,21 @@ namespace Aprimo.ConfigurationWorkbookGenerator
             try
             {
                 switch (fieldDefinition.dataType.ToString().ToUpper())
-            {
-                case "OPTIONLIST":
-                    string fieldName = fieldDefinition.name.ToString();
-                    AddOptionsToWorksheet(fieldName, workbook, fieldDefinition.items, worksheetWithNotes);
-                    return string.Format("See 'Option List Items'-tab for list of available options and filter on 'Field Name' = {0}", fieldName);
-                case "CLASSIFICATIONLIST":
-                    Guid rootId = Guid.Parse(fieldDefinition.rootId.ToString());
-                    string label = (rootId == Guid.Empty) ? "Top Level" : Classifications[rootId].namePath.ToString();
-                    string filter = fieldDefinition.filter.ToString();
-                    string linkToSelected = fieldDefinition.linkRecordToSelectedClassifications.ToString();
-                    string multiselect = fieldDefinition.acceptMultipleOptions.ToString();
-                    return string.Format("Uses '{0}' as root for showing available options, with filter '{1}'. Link records to selected classifications: '{2}', multi-select: '{3}'", label, filter, linkToSelected, multiselect);
-                default:
-                    break;
-            }
+                {
+                    case "OPTIONLIST":
+                        string fieldName = fieldDefinition.name.ToString();
+                        AddOptionsToWorksheet(fieldName, workbook, fieldDefinition.items, worksheetWithNotes);
+                        return string.Format("See 'Option List Items'-tab for list of available options and filter on 'Field Name' = {0}", fieldName);
+                    case "CLASSIFICATIONLIST":
+                        Guid rootId = Guid.Parse(fieldDefinition.rootId.ToString());
+                        string label = (rootId == Guid.Empty) ? "Top Level" : Classifications[rootId].namePath.ToString();
+                        string filter = fieldDefinition.filter.ToString();
+                        string linkToSelected = fieldDefinition.linkRecordToSelectedClassifications.ToString();
+                        string multiselect = fieldDefinition.acceptMultipleOptions.ToString();
+                        return string.Format("Uses '{0}' as root for showing available options, with filter '{1}'. Link records to selected classifications: '{2}', multi-select: '{3}'", label, filter, linkToSelected, multiselect);
+                    default:
+                        break;
+                }
             }
             catch (Exception ex) { }
             return "";
