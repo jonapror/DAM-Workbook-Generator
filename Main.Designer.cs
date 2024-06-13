@@ -52,6 +52,9 @@
             this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.cbSelectAll = new System.Windows.Forms.CheckBox();
+            this.cbContentTypes = new System.Windows.Forms.CheckBox();
+            this.cbRules = new System.Windows.Forms.CheckBox();
             this.cbTranslations = new System.Windows.Forms.CheckBox();
             this.cbWatermarks = new System.Windows.Forms.CheckBox();
             this.cbSettings = new System.Windows.Forms.CheckBox();
@@ -61,9 +64,7 @@
             this.cbFieldDefinitions = new System.Windows.Forms.CheckBox();
             this.cbFieldGroups = new System.Windows.Forms.CheckBox();
             this.cbUserGroups = new System.Windows.Forms.CheckBox();
-            this.cbRules = new System.Windows.Forms.CheckBox();
-            this.cbContentTypes = new System.Windows.Forms.CheckBox();
-            this.cbSelectAll = new System.Windows.Forms.CheckBox();
+            this.cbLangauages = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.SuspendLayout();
@@ -286,6 +287,7 @@
             // 
             // groupBox2
             // 
+            this.groupBox2.Controls.Add(this.cbLangauages);
             this.groupBox2.Controls.Add(this.cbSelectAll);
             this.groupBox2.Controls.Add(this.cbContentTypes);
             this.groupBox2.Controls.Add(this.cbRules);
@@ -306,6 +308,43 @@
             this.groupBox2.TabIndex = 10;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "What do you want to export:";
+            // 
+            // cbSelectAll
+            // 
+            this.cbSelectAll.AutoSize = true;
+            this.cbSelectAll.Checked = true;
+            this.cbSelectAll.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.cbSelectAll.Location = new System.Drawing.Point(18, 35);
+            this.cbSelectAll.Name = "cbSelectAll";
+            this.cbSelectAll.Size = new System.Drawing.Size(168, 24);
+            this.cbSelectAll.TabIndex = 25;
+            this.cbSelectAll.Text = "Select/Deselect All";
+            this.cbSelectAll.UseVisualStyleBackColor = true;
+            this.cbSelectAll.CheckedChanged += new System.EventHandler(this.cbSelectAll_CheckedChanged);
+            // 
+            // cbContentTypes
+            // 
+            this.cbContentTypes.AutoSize = true;
+            this.cbContentTypes.Checked = true;
+            this.cbContentTypes.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.cbContentTypes.Location = new System.Drawing.Point(241, 165);
+            this.cbContentTypes.Name = "cbContentTypes";
+            this.cbContentTypes.Size = new System.Drawing.Size(138, 24);
+            this.cbContentTypes.TabIndex = 24;
+            this.cbContentTypes.Text = "Content Types";
+            this.cbContentTypes.UseVisualStyleBackColor = true;
+            // 
+            // cbRules
+            // 
+            this.cbRules.AutoSize = true;
+            this.cbRules.Checked = true;
+            this.cbRules.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.cbRules.Location = new System.Drawing.Point(421, 111);
+            this.cbRules.Name = "cbRules";
+            this.cbRules.Size = new System.Drawing.Size(76, 24);
+            this.cbRules.TabIndex = 23;
+            this.cbRules.Text = "Rules";
+            this.cbRules.UseVisualStyleBackColor = true;
             // 
             // cbTranslations
             // 
@@ -415,42 +454,16 @@
             this.cbUserGroups.Text = "User Groups";
             this.cbUserGroups.UseVisualStyleBackColor = true;
             // 
-            // cbRules
+            // cbLangauages
             // 
-            this.cbRules.AutoSize = true;
-            this.cbRules.Checked = true;
-            this.cbRules.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.cbRules.Location = new System.Drawing.Point(421, 111);
-            this.cbRules.Name = "cbRules";
-            this.cbRules.Size = new System.Drawing.Size(76, 24);
-            this.cbRules.TabIndex = 23;
-            this.cbRules.Text = "Rules";
-            this.cbRules.UseVisualStyleBackColor = true;
-            // 
-            // cbContentTypes
-            // 
-            this.cbContentTypes.AutoSize = true;
-            this.cbContentTypes.Checked = true;
-            this.cbContentTypes.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.cbContentTypes.Location = new System.Drawing.Point(241, 165);
-            this.cbContentTypes.Name = "cbContentTypes";
-            this.cbContentTypes.Size = new System.Drawing.Size(138, 24);
-            this.cbContentTypes.TabIndex = 24;
-            this.cbContentTypes.Text = "Content Types";
-            this.cbContentTypes.UseVisualStyleBackColor = true;
-            // 
-            // cbSelectAll
-            // 
-            this.cbSelectAll.AutoSize = true;
-            this.cbSelectAll.Checked = true;
-            this.cbSelectAll.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.cbSelectAll.Location = new System.Drawing.Point(18, 35);
-            this.cbSelectAll.Name = "cbSelectAll";
-            this.cbSelectAll.Size = new System.Drawing.Size(168, 24);
-            this.cbSelectAll.TabIndex = 25;
-            this.cbSelectAll.Text = "Select/Deselect All";
-            this.cbSelectAll.UseVisualStyleBackColor = true;
-            this.cbSelectAll.CheckedChanged += new System.EventHandler(this.cbSelectAll_CheckedChanged);
+            this.cbLangauages.AutoSize = true;
+            this.cbLangauages.Location = new System.Drawing.Point(238, 40);
+            this.cbLangauages.Name = "cbLangauages";
+            this.cbLangauages.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.cbLangauages.Size = new System.Drawing.Size(304, 24);
+            this.cbLangauages.TabIndex = 26;
+            this.cbLangauages.Text = "Extract labels in supported languages ";
+            this.cbLangauages.UseVisualStyleBackColor = true;
             // 
             // Main
             // 
@@ -522,6 +535,7 @@
         private System.Windows.Forms.CheckBox cbContentTypes;
         private System.Windows.Forms.CheckBox cbRules;
         private System.Windows.Forms.CheckBox cbSelectAll;
+        private System.Windows.Forms.CheckBox cbLangauages;
     }
 }
 

@@ -16,6 +16,13 @@ namespace Aprimo.ConfigurationWorkbookGenerator
     internal class WorkbookHelper
     {
         private readonly Guid EnglishLanguageId = new Guid("c2bd4f9b-bb95-4bcb-80c3-1e924c9c26dc");
+        private readonly Guid SpanishLanguageId = new Guid("4877d795-541c-4fac-86b9-9a06830b08ee");
+        private readonly Guid FrenchLanguageId = new Guid("18ca1f44-0c21-4eed-aecc-b98f0ae65a81");
+        private readonly Guid GermanLanguageId = new Guid("691a7c86-57dc-4330-a512-c616db954d6a");
+        private readonly Guid ItalianLanguageId = new Guid("5ec55442-1cac-4734-a0ed-e1d01cd1e49f");
+        private readonly Guid JapaneseLanguageId = new Guid("e6665327-1314-43c0-924f-9366e77064d7");
+        private readonly Guid SimplifiedChineseLanguageId = new Guid("bcda9def-f15e-4ab2-90d1-99f2d0428f5e");
+        private readonly Guid PortugueseLanguageId = new Guid("1e498386-288d-41d0-9e5b-beb8580ffd73");
         private Dictionary<Guid, dynamic> FieldGroups = null;
         private Dictionary<Guid, dynamic> FieldDefinitions = null;
         private Dictionary<Guid, dynamic> UserGroups = null;
@@ -215,14 +222,49 @@ namespace Aprimo.ConfigurationWorkbookGenerator
 
         private void PreloadData()
         {
-            Classifications = LoadAllObjects("{0}/classifications", new Dictionary<string, string>() { { "select-classification", "NamePath" } });
-            FieldGroups = LoadAllObjects("{0}/fieldgroups", new Dictionary<string, string>());
-            FieldDefinitions = LoadAllObjects("{0}/fielddefinitions", new Dictionary<string, string>());
-            UserGroups = LoadAllObjects("{0}/usergroups", new Dictionary<string, string>());
-            Watermarks = LoadAllObjects("{0}/watermarks", new Dictionary<string, string>());
-            Translations = LoadAllObjects("{0}/translations", new Dictionary<string, string>());
-            Rules = LoadAllObjects("{0}/rules", new Dictionary<string, string>() { { "select-Rule", "conditions, actions" } });
-            ContentTypes = LoadAllObjects("{0}/contenttypes", new Dictionary<string, string>());
+            if (ExportObjects["classifications"] == true)
+            {
+                Classifications = LoadAllObjects("{0}/classifications", new Dictionary<string, string>() { { "select-classification", "NamePath" } });
+                FieldGroups = LoadAllObjects("{0}/fieldgroups", new Dictionary<string, string>());
+            }
+            if (ExportObjects["classificationPermissions"] == true)
+            {
+                Classifications = LoadAllObjects("{0}/classifications", new Dictionary<string, string>() { { "select-classification", "NamePath" } });
+                UserGroups = LoadAllObjects("{0}/usergroups", new Dictionary<string, string>());
+            }
+            if (ExportObjects["fieldGroups"] == true)
+            {
+                FieldGroups = LoadAllObjects("{0}/fieldgroups", new Dictionary<string, string>());
+            }
+            if (ExportObjects["fieldDefinitions"] == true)
+            {
+                FieldDefinitions = LoadAllObjects("{0}/fielddefinitions", new Dictionary<string, string>());
+                FieldGroups = LoadAllObjects("{0}/fieldgroups", new Dictionary<string, string>());
+            }
+            if (ExportObjects["userGroups"] == true || ExportObjects["functionalPermissions"] == true)
+            {
+                UserGroups = LoadAllObjects("{0}/usergroups", new Dictionary<string, string>());
+            }
+            if (ExportObjects["watermarks"] == true)
+            {
+                Watermarks = LoadAllObjects("{0}/watermarks", new Dictionary<string, string>());
+            }
+            if (ExportObjects["translations"] == true)
+            {
+                Translations = LoadAllObjects("{0}/translations", new Dictionary<string, string>());
+            }
+            if (ExportObjects["rules"] == true)
+            {
+                Rules = LoadAllObjects("{0}/rules", new Dictionary<string, string>() { { "select-Rule", "conditions, actions" } });
+                FieldDefinitions = LoadAllObjects("{0}/fielddefinitions", new Dictionary<string, string>());
+                Classifications = LoadAllObjects("{0}/classifications", new Dictionary<string, string>() { { "select-classification", "NamePath" } });
+                Watermarks = LoadAllObjects("{0}/watermarks", new Dictionary<string, string>());
+            }
+            if (ExportObjects["contentTypes"] == true)
+            {
+                ContentTypes = LoadAllObjects("{0}/contenttypes", new Dictionary<string, string>());
+                FieldDefinitions = LoadAllObjects("{0}/fielddefinitions", new Dictionary<string, string>());
+            }
         }
 
         private void ExportRolePermissions(ExcelWorksheet worksheet)
@@ -344,6 +386,7 @@ namespace Aprimo.ConfigurationWorkbookGenerator
             request.AddHeader("Accept", "application/hal+json");
             request.AddHeader("API-VERSION", "1");
             request.AddHeader("pageSize", "500");
+            request.AddHeader("Languages", "*");
             foreach (var header in headers)
             {
                 request.AddHeader(header.Key, header.Value);
@@ -405,11 +448,12 @@ namespace Aprimo.ConfigurationWorkbookGenerator
             string url = string.Format("{0}/classification/{1}/{2}", AprimoDamUrl, classificationId, permissionType);
 
             dynamic jsonResponse = GetRestResponse(url, new Dictionary<string, string>());
+            string permissionLabel = permissionType.Replace("Permissions", "");
 
             if ((jsonResponse.permissions.Count > 0) || (jsonResponse.breakInheritance == true))
             {
                 worksheet.Cells[rowIndex, 1].Value = classificationPath;
-                worksheet.Cells[rowIndex, 2].Value = permissionType;
+                worksheet.Cells[rowIndex, 2].Value = permissionLabel;
                 worksheet.Cells[rowIndex, 3].Value = jsonResponse.breakInheritance.ToString();
                 foreach (var permission in jsonResponse.permissions)
                 {
@@ -461,13 +505,23 @@ namespace Aprimo.ConfigurationWorkbookGenerator
         private void ExportTranslations(ExcelWorksheet worksheet, ExcelWorksheet worksheetWithNotes)
         {
             UiHelper.ResetSubProcessProgressBar();
-
-            worksheet.Cells[1, 1].Value = "ID";
-            worksheet.Cells[1, 2].Value = "Studio";
-            worksheet.Cells[1, 3].Value = "Module";
-            worksheet.Cells[1, 4].Value = "Name";
-            worksheet.Cells[1, 5].Value = "Label in English";
-            worksheet.Cells[1, 6].Value = "Notes";
+            int columnCounter = 1;
+            worksheet.Cells[1, columnCounter++].Value = "ID";
+            worksheet.Cells[1, columnCounter++].Value = "Studio";
+            worksheet.Cells[1, columnCounter++].Value = "Module";
+            worksheet.Cells[1, columnCounter++].Value = "Name";
+            worksheet.Cells[1, columnCounter++].Value = "Label in English";
+            if (ExportObjects["languages"] == true)
+            {
+                worksheet.Cells[1, columnCounter++].Value = "Label in Spanish";
+                worksheet.Cells[1, columnCounter++].Value = "Label in French";
+                worksheet.Cells[1, columnCounter++].Value = "Label in German";
+                worksheet.Cells[1, columnCounter++].Value = "Label in Italian";
+                worksheet.Cells[1, columnCounter++].Value = "Label in Japanese";
+                worksheet.Cells[1, columnCounter++].Value = "Label in Simplified Chinese";
+                worksheet.Cells[1, columnCounter++].Value = "Label in Brazilian Portuguese";
+            }
+            worksheet.Cells[1, columnCounter++].Value = "Notes";
 
             int i = 2;
             UiHelper.SetSubProcessProgressBarMaximum(Translations.Count);
@@ -475,15 +529,25 @@ namespace Aprimo.ConfigurationWorkbookGenerator
             foreach (dynamic translation in Translations.Values)
             {
                 string name = translation.name.ToString();
-
+                columnCounter = 1;
                 UiHelper.LogInfo(string.Format("Processing translation {0}...", name), false, true);
 
-                worksheet.Cells[i, 1].Value = translation.id.ToString();
-                worksheet.Cells[i, 2].Value = translation.studio.ToString();
-                worksheet.Cells[i, 3].Value = translation.module.ToString();
-                worksheet.Cells[i, 4].Value = name;
-                worksheet.Cells[i, 5].Value = FindLabelInEnglish(translation.localizedValues);
-                worksheet.Cells[i, 6].Value = FindNotesInWorksheet(translation.id.ToString(), worksheetWithNotes);
+                worksheet.Cells[i, columnCounter++].Value = translation.id.ToString();
+                worksheet.Cells[i, columnCounter++].Value = translation.studio.ToString();
+                worksheet.Cells[i, columnCounter++].Value = translation.module.ToString();
+                worksheet.Cells[i, columnCounter++].Value = name;
+                worksheet.Cells[i, columnCounter++].Value = FindLabelInEnglish(translation.localizedValues);
+                if (ExportObjects["languages"] == true)
+                {
+                    worksheet.Cells[i, columnCounter++].Value = FindLabelInSpanish(translation.localizedValues);
+                    worksheet.Cells[i, columnCounter++].Value = FindLabelInFrench(translation.localizedValues);
+                    worksheet.Cells[i, columnCounter++].Value = FindLabelInGerman(translation.localizedValues);
+                    worksheet.Cells[i, columnCounter++].Value = FindLabelInItalian(translation.localizedValues);
+                    worksheet.Cells[i, columnCounter++].Value = FindLabelInJapanese(translation.localizedValues);
+                    worksheet.Cells[i, columnCounter++].Value = FindLabelInSimplifiedChinese(translation.localizedValues);
+                    worksheet.Cells[i, columnCounter++].Value = FindLabelInPortuguese(translation.localizedValues);
+                }
+                worksheet.Cells[i, columnCounter++].Value = FindNotesInWorksheet(translation.id.ToString(), worksheetWithNotes);
                 i++;
             }
 
@@ -495,7 +559,8 @@ namespace Aprimo.ConfigurationWorkbookGenerator
 
             worksheet.Cells[1, 1].Value = "ID";
             worksheet.Cells[1, 2].Value = "Name";
-            worksheet.Cells[1, 3].Value = "Notes";
+            worksheet.Cells[1, 3].Value = "Position";
+            worksheet.Cells[1, 4].Value = "Notes";
 
             int i = 2;
             UiHelper.SetSubProcessProgressBarMaximum(Watermarks.Count);
@@ -507,7 +572,8 @@ namespace Aprimo.ConfigurationWorkbookGenerator
 
                 worksheet.Cells[i, 1].Value = watermark.id.ToString();
                 worksheet.Cells[i, 2].Value = name;
-                worksheet.Cells[i, 3].Value = FindNotesInWorksheet(watermark.id.ToString(), worksheetWithNotes);
+                worksheet.Cells[i, 3].Value = watermark.position.ToString();
+                worksheet.Cells[i, 4].Value = FindNotesInWorksheet(watermark.id.ToString(), worksheetWithNotes);
                 i++;
             }
         }
@@ -580,10 +646,11 @@ namespace Aprimo.ConfigurationWorkbookGenerator
             worksheet.Cells[1, 3].Value = "Target";
             worksheet.Cells[1, 4].Value = "Trigger";
             worksheet.Cells[1, 5].Value = "Enabled";
-            worksheet.Cells[1, 6].Value = "Conditions";
-            worksheet.Cells[1, 7].Value = "Actions";
+            worksheet.Cells[1, 6].Value = "Enabled on drafts";
+            worksheet.Cells[1, 7].Value = "Conditions";
+            worksheet.Cells[1, 8].Value = "Actions";
             worksheet.Cells[1, 9].Value = "Notes";
-            worksheet.Cells[1, 8].Value = "Enabled on drafts";
+
 
             int i = 2;
             UiHelper.SetSubProcessProgressBarMaximum(Rules.Count);
@@ -600,10 +667,11 @@ namespace Aprimo.ConfigurationWorkbookGenerator
                     worksheet.Cells[i, 3].Value = rule.target.ToString();
                     worksheet.Cells[i, 4].Value = AddSpacesToSentenceCase(rule.trigger.ToString(), true);
                     worksheet.Cells[i, 5].Value = rule.enabled.ToString();
-                    worksheet.Cells[i, 6].Value = GetRuleConditionsText(rule._embedded.conditions.items);
-                    worksheet.Cells[i, 7].Value = GetRuleActionsText(rule._embedded.actions.items);
+                    worksheet.Cells[i, 6].Value = rule.includeDraftRecords.ToString();
+                    worksheet.Cells[i, 7].Value = GetRuleConditionsText(rule._embedded.conditions.items);
+                    worksheet.Cells[i, 8].Value = GetRuleActionsText(rule._embedded.actions.items);
                     worksheet.Cells[i, 9].Value = FindNotesInWorksheet(rule.id.ToString(), worksheetWithNotes);
-                    worksheet.Cells[i, 8].Value = rule.includeDraftRecords.ToString();
+
                 }
                 catch (System.Exception ex) { UiHelper.LogInfo(string.Format("Error happened while processing rule {0}, error message: {1}", name, ex.Message), false, true); }
                 i++;
@@ -927,33 +995,54 @@ namespace Aprimo.ConfigurationWorkbookGenerator
 
         private void ExportClassifications(ExcelWorksheet worksheet, ExcelWorksheet worksheetWithNotes)
         {
-            worksheet.Cells[1, 1].Value = "ID";
-            worksheet.Cells[1, 2].Value = "Name";
-            worksheet.Cells[1, 3].Value = "Label";
-            worksheet.Cells[1, 4].Value = "Identifier";
-            worksheet.Cells[1, 5].Value = "NamePath";
-            worksheet.Cells[1, 6].Value = "Registered Field Groups";
-            worksheet.Cells[1, 7].Value = "Registered Fields";
-            worksheet.Cells[1, 8].Value = "Notes";
+            int columnCounter = 1;
+            worksheet.Cells[1, columnCounter++].Value = "ID";
+            worksheet.Cells[1, columnCounter++].Value = "NamePath";
+            worksheet.Cells[1, columnCounter++].Value = "Name";
+            worksheet.Cells[1, columnCounter++].Value = "Label in English";
+            if (ExportObjects["languages"] == true)
+            {
+                worksheet.Cells[1, columnCounter++].Value = "Label in Spanish";
+                worksheet.Cells[1, columnCounter++].Value = "Label in French";
+                worksheet.Cells[1, columnCounter++].Value = "Label in German";
+                worksheet.Cells[1, columnCounter++].Value = "Label in Italian";
+                worksheet.Cells[1, columnCounter++].Value = "Label in Japanese";
+                worksheet.Cells[1, columnCounter++].Value = "Label in Simplified Chinese";
+                worksheet.Cells[1, columnCounter++].Value = "Label in Brazilian Portuguese";
+            }
+            worksheet.Cells[1, columnCounter++].Value = "Identifier";
+            worksheet.Cells[1, columnCounter++].Value = "Registered Field Groups";
+            worksheet.Cells[1, columnCounter++].Value = "Registered Fields";
+            worksheet.Cells[1, columnCounter++].Value = "Notes";
 
             int i = 2;
             UiHelper.SetSubProcessProgressBarMaximum(Classifications.Count);
             foreach (dynamic classification in Classifications.Values)
             {
                 string namePath = classification.namePath.ToString();
-
+                columnCounter = 1;
                 UiHelper.LogInfo(string.Format("Processing classification {0}...", namePath), false, true);
 
-                worksheet.Cells[i, 1].Value = classification.id.ToString();
-                worksheet.Cells[i, 2].Value = classification.name.ToString();
-                worksheet.Cells[i, 3].Value = FindLabelInEnglish(classification.labels);
-                worksheet.Cells[i, 4].Value = classification.identifier.ToString();
-                worksheet.Cells[i, 5].Value = namePath;
-                worksheet.Cells[i, 6].Value = string.Join(", ", ConvertRegisteredFieldGroupIdsToNames(classification.registeredFieldGroups));
-                worksheet.Cells[i, 7].Value = string.Join(", ", ConvertRegisteredFieldIdsToNames(classification.registeredFields));
+                worksheet.Cells[i, columnCounter++].Value = classification.id.ToString();
+                worksheet.Cells[i, columnCounter++].Value = namePath;
+                worksheet.Cells[i, columnCounter++].Value = classification.name.ToString();
+                worksheet.Cells[i, columnCounter++].Value = FindLabelInEnglish(classification.labels);
+                if (ExportObjects["languages"] == true)
+                {
+                    worksheet.Cells[i, columnCounter++].Value = FindLabelInSpanish(classification.labels);
+                    worksheet.Cells[i, columnCounter++].Value = FindLabelInFrench(classification.labels);
+                    worksheet.Cells[i, columnCounter++].Value = FindLabelInGerman(classification.labels);
+                    worksheet.Cells[i, columnCounter++].Value = FindLabelInItalian(classification.labels);
+                    worksheet.Cells[i, columnCounter++].Value = FindLabelInJapanese(classification.labels);
+                    worksheet.Cells[i, columnCounter++].Value = FindLabelInSimplifiedChinese(classification.labels);
+                    worksheet.Cells[i, columnCounter++].Value = FindLabelInPortuguese(classification.labels);
+                }
+                worksheet.Cells[i, columnCounter++].Value = classification.identifier.ToString();
+                worksheet.Cells[i, columnCounter++].Value = string.Join(", ", ConvertRegisteredFieldGroupIdsToNames(classification.registeredFieldGroups));
+                worksheet.Cells[i, columnCounter++].Value = string.Join(", ", ConvertRegisteredFieldIdsToNames(classification.registeredFields));
                 try
                 {
-                    worksheet.Cells[i, 8].Value = FindNotesInWorksheet(classification.id.ToString(), worksheetWithNotes);
+                    worksheet.Cells[i, columnCounter++].Value = FindNotesInWorksheet(classification.id.ToString(), worksheetWithNotes);
                 }
                 catch (Exception)
                 {
@@ -1021,6 +1110,82 @@ namespace Aprimo.ConfigurationWorkbookGenerator
             return "";
         }
 
+        private object FindLabelInSpanish(dynamic labels)
+        {
+            foreach (dynamic item in labels)
+            {
+                Guid languageId = Guid.Parse(item.languageId.ToString());
+                if (languageId == SpanishLanguageId) return item.value.ToString();
+            }
+
+            return "";
+        }
+
+        private object FindLabelInFrench(dynamic labels)
+        {
+            foreach (dynamic item in labels)
+            {
+                Guid languageId = Guid.Parse(item.languageId.ToString());
+                if (languageId == FrenchLanguageId) return item.value.ToString();
+            }
+
+            return "";
+        }
+
+        private object FindLabelInGerman(dynamic labels)
+        {
+            foreach (dynamic item in labels)
+            {
+                Guid languageId = Guid.Parse(item.languageId.ToString());
+                if (languageId == GermanLanguageId) return item.value.ToString();
+            }
+
+            return "";
+        }
+        private object FindLabelInItalian(dynamic labels)
+        {
+            foreach (dynamic item in labels)
+            {
+                Guid languageId = Guid.Parse(item.languageId.ToString());
+                if (languageId == ItalianLanguageId) return item.value.ToString();
+            }
+
+            return "";
+        }
+
+        private object FindLabelInJapanese(dynamic labels)
+        {
+            foreach (dynamic item in labels)
+            {
+                Guid languageId = Guid.Parse(item.languageId.ToString());
+                if (languageId == JapaneseLanguageId) return item.value.ToString();
+            }
+
+            return "";
+        }
+
+        private object FindLabelInSimplifiedChinese(dynamic labels)
+        {
+            foreach (dynamic item in labels)
+            {
+                Guid languageId = Guid.Parse(item.languageId.ToString());
+                if (languageId == SimplifiedChineseLanguageId) return item.value.ToString();
+            }
+
+            return "";
+        }
+
+        private object FindLabelInPortuguese(dynamic labels)
+        {
+            foreach (dynamic item in labels)
+            {
+                Guid languageId = Guid.Parse(item.languageId.ToString());
+                if (languageId == PortugueseLanguageId) return item.value.ToString();
+            }
+
+            return "";
+        }
+
         private void ExportFieldGroups(ExcelWorksheet worksheet, ExcelWorksheet worksheetWithNotes)
         {
             UiHelper.ResetSubProcessProgressBar();
@@ -1049,53 +1214,81 @@ namespace Aprimo.ConfigurationWorkbookGenerator
         {
             UiHelper.ResetSubProcessProgressBar();
 
-            worksheet.Cells[1, 1].Value = "ID";
-            worksheet.Cells[1, 2].Value = "Name";
-            worksheet.Cells[1, 3].Value = "Label";
-            worksheet.Cells[1, 4].Value = "Data Type";
-            worksheet.Cells[1, 5].Value = "Scope";
-            worksheet.Cells[1, 6].Value = "Required";
-            worksheet.Cells[1, 7].Value = "Searchable";
-            worksheet.Cells[1, 8].Value = "Read only";
-            worksheet.Cells[1, 9].Value = "Default Value";
-            worksheet.Cells[1, 10].Value = "Default Value Triggers";
-            worksheet.Cells[1, 11].Value = "Validation";
-            worksheet.Cells[1, 12].Value = "Validation message";
-            worksheet.Cells[1, 13].Value = "Field Groups";
-            worksheet.Cells[1, 14].Value = "Sort index";
-            worksheet.Cells[1, 15].Value = "Help text";
-            worksheet.Cells[1, 16].Value = "Additional Info";
-            worksheet.Cells[1, 17].Value = "Notes";
+            int columnCounter = 1;
+
+            worksheet.Cells[1, columnCounter++].Value = "ID";
+            worksheet.Cells[1, columnCounter++].Value = "Name";
+            worksheet.Cells[1, columnCounter++].Value = "Label in English";
+            if (ExportObjects["languages"] == true)
+            {
+                worksheet.Cells[1, columnCounter++].Value = "Label in Spanish";
+                worksheet.Cells[1, columnCounter++].Value = "Label in French";
+                worksheet.Cells[1, columnCounter++].Value = "Label in German";
+                worksheet.Cells[1, columnCounter++].Value = "Label in Italian";
+                worksheet.Cells[1, columnCounter++].Value = "Label in Japanese";
+                worksheet.Cells[1, columnCounter++].Value = "Label in Simplified Chinese";
+                worksheet.Cells[1, columnCounter++].Value = "Label in Brazilian Portuguese";
+            }
+            worksheet.Cells[1, columnCounter++].Value = "Sort index";
+            worksheet.Cells[1, columnCounter++].Value = "Data Type";
+            worksheet.Cells[1, columnCounter++].Value = "Scope";
+            worksheet.Cells[1, columnCounter++].Value = "Required";
+            worksheet.Cells[1, columnCounter++].Value = "Searchable";
+            worksheet.Cells[1, columnCounter++].Value = "Read only";
+            worksheet.Cells[1, columnCounter++].Value = "Unique Identifier";
+            worksheet.Cells[1, columnCounter++].Value = "Default Value";
+            worksheet.Cells[1, columnCounter++].Value = "Default Value Triggers";
+            worksheet.Cells[1, columnCounter++].Value = "Validation";
+            worksheet.Cells[1, columnCounter++].Value = "Validation message";
+            worksheet.Cells[1, columnCounter++].Value = "Field Groups";
+
+            worksheet.Cells[1, columnCounter++].Value = "Help text";
+            worksheet.Cells[1, columnCounter++].Value = "Additional Info";
+            worksheet.Cells[1, columnCounter++].Value = "Notes";
+
 
 
             int i = 2;
             UiHelper.SetSubProcessProgressBarMaximum(FieldDefinitions.Count);
             foreach (dynamic fieldDefinition in FieldDefinitions.Values)
             {
+                columnCounter = 1;
                 string name = fieldDefinition.name.ToString();
 
                 UiHelper.LogInfo(string.Format("Processing field definition {0}...", name), false, true);
 
-                worksheet.Cells[i, 1].Value = fieldDefinition.id.ToString();
-                worksheet.Cells[i, 2].Value = name;
-                worksheet.Cells[i, 3].Value = fieldDefinition.label.ToString();
-                worksheet.Cells[i, 4].Value = AddSpacesToSentenceCase(fieldDefinition.dataType.ToString(), true);
-                worksheet.Cells[i, 5].Value = AddSpacesToSentenceCase(fieldDefinition.scope.ToString(), true);
-                worksheet.Cells[i, 6].Value = fieldDefinition.isRequired.ToString();
-                worksheet.Cells[i, 7].Value = fieldDefinition.indexed.ToString();
-                worksheet.Cells[i, 8].Value = fieldDefinition.isReadOnly.ToString();
-                worksheet.Cells[i, 9].Value = fieldDefinition.defaultValue.ToString();
-                worksheet.Cells[i, 10].Value = JsonArrayToString(fieldDefinition.resetToDefaultTriggers);
-                worksheet.Cells[i, 11].Value = fieldDefinition.validation.ToString();
-                worksheet.Cells[i, 12].Value = fieldDefinition.validationErrorMessage.ToString();
-                worksheet.Cells[i, 13].Value = string.Join(", ", ConvertFieldGroupIdsToNames(fieldDefinition.memberships));
-                worksheet.Cells[i, 14].Value = fieldDefinition.sortIndex.ToString();
-                worksheet.Cells[i, 15].Value = fieldDefinition.helpText.ToString();
-                worksheet.Cells[i, 16].Value = GetAdditionalInfoForFieldDefinition(fieldDefinition, worksheet.Workbook, worksheetWithNotes);
-                worksheet.Cells[i, 17].Value = FindNotesInWorksheet(fieldDefinition.id.ToString(), worksheetWithNotes);
+                worksheet.Cells[i, columnCounter++].Value = fieldDefinition.id.ToString();
+                worksheet.Cells[i, columnCounter++].Value = name;
+                worksheet.Cells[i, columnCounter++].Value = FindLabelInEnglish(fieldDefinition.labels);
+                if (ExportObjects["languages"] == true)
+                {
+                    worksheet.Cells[i, columnCounter++].Value = FindLabelInSpanish(fieldDefinition.labels);
+                    worksheet.Cells[i, columnCounter++].Value = FindLabelInFrench(fieldDefinition.labels);
+                    worksheet.Cells[i, columnCounter++].Value = FindLabelInGerman(fieldDefinition.labels);
+                    worksheet.Cells[i, columnCounter++].Value = FindLabelInItalian(fieldDefinition.labels);
+                    worksheet.Cells[i, columnCounter++].Value = FindLabelInJapanese(fieldDefinition.labels);
+                    worksheet.Cells[i, columnCounter++].Value = FindLabelInSimplifiedChinese(fieldDefinition.labels);
+                    worksheet.Cells[i, columnCounter++].Value = FindLabelInPortuguese(fieldDefinition.labels);
+                }
+                worksheet.Cells[i, columnCounter++].Value = fieldDefinition.sortIndex.ToString();
+                worksheet.Cells[i, columnCounter++].Value = AddSpacesToSentenceCase(fieldDefinition.dataType.ToString(), true);
+                worksheet.Cells[i, columnCounter++].Value = AddSpacesToSentenceCase(fieldDefinition.scope.ToString(), true);
+                worksheet.Cells[i, columnCounter++].Value = fieldDefinition.isRequired.ToString();
+                worksheet.Cells[i, columnCounter++].Value = fieldDefinition.indexed.ToString();
+                worksheet.Cells[i, columnCounter++].Value = fieldDefinition.isReadOnly.ToString();
+                worksheet.Cells[i, columnCounter++].Value = fieldDefinition.isUniqueIdentifier.ToString();
+                worksheet.Cells[i, columnCounter++].Value = fieldDefinition.defaultValue.ToString();
+                worksheet.Cells[i, columnCounter++].Value = JsonArrayToString(fieldDefinition.resetToDefaultTriggers);
+                worksheet.Cells[i, columnCounter++].Value = fieldDefinition.validation.ToString();
+                worksheet.Cells[i, columnCounter++].Value = fieldDefinition.validationErrorMessage.ToString();
+                worksheet.Cells[i, columnCounter++].Value = string.Join(", ", ConvertFieldGroupIdsToNames(fieldDefinition.memberships));
+                worksheet.Cells[i, columnCounter++].Value = fieldDefinition.helpText.ToString();
+                worksheet.Cells[i, columnCounter++].Value = GetAdditionalInfoForFieldDefinition(fieldDefinition, worksheet.Workbook, worksheetWithNotes);
+                worksheet.Cells[i, columnCounter++].Value = FindNotesInWorksheet(fieldDefinition.id.ToString(), worksheetWithNotes);
 
                 i++;
             }
+
         }
 
         private string GetAdditionalInfoForFieldDefinition(dynamic fieldDefinition, ExcelWorkbook workbook, ExcelWorksheet worksheetWithNotes)
@@ -1221,15 +1414,16 @@ namespace Aprimo.ConfigurationWorkbookGenerator
 
         private void FormatWorksheet(ExcelWorksheet worksheet, bool deleteEmptyColumns = false, int rotateHeaderColumnFromIndex = 0)
         {
-            //Autofit column width
-            worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
+            //Autofit column width - avoid columns that are too wide to be usable
+            worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns(10, 100);
 
-            //Set header row in bold, apply background color, apply vertical text orientation
+            //Set header row in bold, Aprimo brand apply background color, apply vertical text orientation
             ExcelRange headerCells = worksheet.Cells[1, 1, 1, worksheet.Dimension.End.Column];
             ExcelFill headerFill = headerCells.Style.Fill;
             headerFill.PatternType = ExcelFillStyle.Solid;
-            headerFill.BackgroundColor.SetColor(Color.Gray);
+            headerFill.BackgroundColor.SetColor(0, 0, 95, 127);
             headerCells.Style.Font.Bold = true;
+            headerCells.Style.Font.Color.SetColor(Color.White);
             if (rotateHeaderColumnFromIndex > 0)
             {
                 worksheet.Cells[1, rotateHeaderColumnFromIndex, 1, worksheet.Dimension.End.Column].Style.TextRotation = 90;
@@ -1263,6 +1457,9 @@ namespace Aprimo.ConfigurationWorkbookGenerator
             {
                 worksheet.Column(j).Style.WrapText = true;
             }
+
+            //Do not wrap text for headers
+            headerCells.Style.WrapText = false;
 
             //Enable filter for header row
             worksheet.Cells[worksheet.Dimension.Address].AutoFilter = true;

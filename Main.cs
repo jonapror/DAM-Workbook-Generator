@@ -44,6 +44,7 @@ namespace Aprimo.ConfigurationWorkbookGenerator
                     exportObjects.Add("settings", cbSettings.Checked);
                     exportObjects.Add("translations", cbTranslations.Checked);
                     exportObjects.Add("watermarks", cbWatermarks.Checked);
+                    exportObjects.Add("languages", cbLangauages.Checked);
 
                     WorkbookHelper helper = new WorkbookHelper(SubDomain, ClientId, UserName, UserToken, logger);
                     helper.ExportConfiguration(txtOutputFilePath.Text, txtInputFilePath.Text, exportObjects);
