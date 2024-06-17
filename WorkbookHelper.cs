@@ -226,6 +226,7 @@ namespace Aprimo.ConfigurationWorkbookGenerator
             {
                 Classifications = LoadAllObjects("{0}/classifications", new Dictionary<string, string>() { { "select-classification", "NamePath" } });
                 FieldGroups = LoadAllObjects("{0}/fieldgroups", new Dictionary<string, string>());
+                FieldDefinitions = LoadAllObjects("{0}/fielddefinitions", new Dictionary<string, string>());
             }
             if (ExportObjects["classificationPermissions"] == true)
             {
