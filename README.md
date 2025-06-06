@@ -13,9 +13,3 @@ This tool can help you generate a workbook that outlines how your DAM is configu
 - rules
 - content types
 
-# Open Source Policy
-
-For more information about Aprimo's Open Source Policies, please refer to
-https://community.aprimo.com/knowledgecenter/aprimo-connect/aprimo-connect-open-source
-
-**Disclaimer: This tool is not productized Aprimo tool, therefore Aprimo product team does not guarantee for the results nor can you report issues found with the tool to Aprimo Service Now portal. This is an open source tooling developed over time by Aprimo consultants and has been successfully utilized during Aprimo Services team led Activations.**
