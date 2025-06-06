@@ -1349,7 +1349,7 @@ namespace Aprimo.ConfigurationWorkbookGenerator
                     (worksheetWithNotes.Workbook != null) &&
                     (worksheetWithNotes.Workbook.Worksheets[tabName] != null))
                 {
-                    worksheet.Cells[i, 4].Value = FindNotesInWorksheet(option.id.ToString(), worksheetWithNotes.Workbook.Worksheets[tabName]);
+                    worksheet.Cells[i, 5].Value = FindNotesInWorksheet(option.id.ToString(), worksheetWithNotes.Workbook.Worksheets[tabName]);
                 }
                 i++;
             }
